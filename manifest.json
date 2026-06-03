@@ -1,0 +1,18 @@
+{
+  "name": "СТРОЙ.Пульс",
+  "short_name": "СТРОЙ",
+  "description": "Мобильный кабинет прораба системы СТРОЙ",
+  "start_url": "form.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "stroy_telegram_cover_fixed.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

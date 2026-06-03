@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>STROY.Mobile</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 16px;
+            padding-bottom: 32px;
+            overflow-x: hidden;
+        }
+
+        /* Language Toggle */
+        .lang-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+
+        .lang-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .lang-btn.active {
+            border-color: var(--primary);
+            color: #fff;
+            background: rgba(139, 92, 246, 0.15);
+        }
+
+        /* Form Header */
+        .header {
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(16, 185, 129, 0.05));
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Form Fields */
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        /* Chips Selection */
+        .chips-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .chip {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px 6px;
+            text-align: center;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            border-color: var(--success);
+            color: #fff;
+            background: rgba(16, 185, 129, 0.15);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Type Selector Card style */
+        .types-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .type-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px 6px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .type-card input {
+            display: none;
+        }
+
+        .type-icon {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+
+        .type-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .type-card.active {
+            color: #fff;
+        }
+
+        .type-card.active[data-type="отчет"] {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        .type-card.active[data-type="заявка"] {
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.15);
+        }
+
+        .type-card.active[data-type="вопрос"] {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        /* Input Elements */
+        .textarea-wrapper {
+            position: relative;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            padding-right: 48px;
+            color: #fff;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.06);
+        }
+
+        /* Microphone Button */
+        .mic-btn {
+            position: absolute;
+            right: 8px;
+            bottom: 12px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .mic-btn.recording {
+            background: var(--danger);
+            color: #fff;
+            border-color: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Upload Section */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--card-bg);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:active {
+            background: rgba(255,255,255,0.06);
+            border-color: var(--primary);
+        }
+
+        .upload-zone svg {
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .upload-zone span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        /* Grid Preview for Multiple Images */
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-item .remove-single-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            border: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), #6d28d9);
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 5px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Toast Message */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(16, 185, 129, 0.95);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .toast.error {
+            background: rgba(239, 68, 68, 0.95);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Language Bar -->
+    <div class="lang-bar">
+        <button class="lang-btn active" data-lang="pl">PL</button>
+        <button class="lang-btn" data-lang="ru">RU</button>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1 id="txt-title">Nowy raport z obiektu</h1>
+        <p id="txt-subtitle">Wprowadź dane. Zdjęcia zostaną zapisane w chmurze Google.</p>
+    </div>
+
+    <form id="report-form">
+        <!-- Site chips -->
+        <div class="field">
+            <label class="label" id="txt-label-site">Obiekt budowlany</label>
+            <div class="chips-grid" id="site-chips">
+                <div class="chip active" data-value="Береговая">Berehova</div>
+                <div class="chip" data-value="Ясминова">Jasminova</div>
+                <div class="chip" data-value="Центральный">Centralny</div>
+            </div>
+            <input type="hidden" id="form-site" value="Береговая">
+        </div>
+
+        <!-- Type cards -->
+        <div class="field">
+            <label class="label" id="txt-label-type">Typ wiadomości</label>
+            <div class="types-grid">
+                <div class="type-card active" data-type="отчет">
+                    <span class="type-icon">📋</span>
+                    <span class="type-title" id="txt-type-report">Raport</span>
+                </div>
+                <div class="type-card" data-type="заявка">
+                    <span class="type-icon">🛒</span>
+                    <span class="type-title" id="txt-type-request">Zamówienie</span>
+                </div>
+                <div class="type-card" data-type="вопрос">
+                    <span class="type-icon">⚠️</span>
+                    <span class="type-title" id="txt-type-problem">Pytanie</span>
+                </div>
+            </div>
+            <input type="hidden" id="form-type" value="отчет">
+        </div>
+
+        <!-- Text Description -->
+        <div class="field">
+            <label class="label" id="txt-label-desc">Szczegóły / Opis</label>
+            <div class="textarea-wrapper">
+                <textarea id="form-text" rows="4" placeholder="Wpisz szczegóły raportu lub podyktuj głosem..." required></textarea>
+                <button type="button" class="mic-btn" id="mic-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                </button>
+            </div>
+            <span class="hint" id="mic-hint">Kliknij mikrofon, aby podyktować głosowo</span>
+        </div>
+
+        <!-- File Upload (Multiple Support) -->
+        <div class="field">
+            <label class="label" id="txt-label-photo">Zdjęcia raportu</label>
+            <div class="upload-zone" id="upload-zone">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span id="txt-upload-hint">Zrób zdjęcia lub wybierz z galerii</span>
+                <input type="file" id="file-input" accept="image/*" multiple style="display:none;">
+            </div>
+            <div class="preview-grid" id="preview-grid">
+                <!-- Preview items will go here -->
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="submit-btn" id="submit-btn">
+            <span id="txt-submit-label">Wyślij do bazy Google</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+    </form>
+
+    <div class="toast" id="toast">Sukces!</div>
+
+    <script>
+        // Google Script URL
+        const GOOGLE_WEBAPP_URL = "<?= webAppUrl ?>";
+
+        // Vocabulary translations
+        const translations = {
+            pl: {
+                title: "Nowy raport z obiektu",
+                subtitle: "Wprowadź dane. Zdjęcia zostaną zapisane w chmurze Google.",
+                labelSite: "Obiekt budowlany",
+                labelType: "Typ wiadomości",
+                typeReport: "Raport",
+                typeRequest: "Zamówienie",
+                typeProblem: "Pytanie",
+                labelDesc: "Szczegóły / Opis",
+                descPlaceholder: "Wpisz szczegóły raportu lub podyktuj głosem...",
+                labelPhoto: "Zdjęcia raportu",
+                uploadHint: "Dodaj zdjęcia z galerii (można kilka po kolei)",
+                submitLabel: "Wyślij do bazy Google",
+                micHint: "Kliknij mikrofon, aby podyktować głosowo",
+                micListening: "🎙️ Słucham... Mów teraz",
+                micError: "Błąd nagrywania. Spróbuj ponownie.",
+                sending: "Kompresja i wysyłanie zdjęć...",
+                sentSuccess: "Raport wysлany pomyślnie!",
+                sentError: "Błąd: "
+            },
+            ru: {
+                title: "Новый отчет по объекту",
+                subtitle: "Заполните форму. Фотографии автоматически сохранятся на Google Диск.",
+                labelSite: "Строительный объект",
+                labelType: "Тип сообщения",
+                typeReport: "Отчет",
+                typeRequest: "Заявка",
+                typeProblem: "Вопрос",
+                labelDesc: "Описание / Детали",
+                descPlaceholder: "Введите детали отчета или используйте голосовой ввод...",
+                labelPhoto: "Фотоотчет",
+                uploadHint: "Добавить фото (можно добавлять по одному по очереди)",
+                submitLabel: "Отправить в Google базу",
+                micHint: "Нажмите на микрофон для диктовки голосом",
+                micListening: "🎙️ Слушаю вас... Говорите",
+                micError: "Ошибка записи. Попробуйте еще раз.",
+                sending: "Сжатие и отправка фотографий...",
+                sentSuccess: "Отчет успешно записан в Таблицу!",
+                sentError: "Ошибка: "
+            }
+        };
+
+        let currentLang = "pl";
+        let uploadedImages = []; // Stores array of base64 images
+
+        // Language Switcher
+        const langBtns = document.querySelectorAll(".lang-btn");
+        langBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                langBtns.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                currentLang = btn.getAttribute("data-lang");
+                applyTranslations(currentLang);
+            });
+        });
+
+        function applyTranslations(lang) {
+            const tr = translations[lang];
+            document.getElementById("txt-title").textContent = tr.title;
+            document.getElementById("txt-subtitle").textContent = tr.subtitle;
+            document.getElementById("txt-label-site").textContent = tr.labelSite;
+            document.getElementById("txt-label-type").textContent = tr.labelType;
+            document.getElementById("txt-type-report").textContent = tr.typeReport;
+            document.getElementById("txt-type-request").textContent = tr.typeRequest;
+            document.getElementById("txt-type-problem").textContent = tr.typeProblem;
+            document.getElementById("txt-label-desc").textContent = tr.labelDesc;
+            document.getElementById("form-text").placeholder = tr.descPlaceholder;
+            document.getElementById("txt-label-photo").textContent = tr.labelPhoto;
+            document.getElementById("txt-upload-hint").textContent = tr.uploadHint;
+            document.getElementById("txt-submit-label").textContent = tr.submitLabel;
+            document.getElementById("mic-hint").textContent = tr.micHint;
+        }
+
+        // Interactivity: Chips Selection
+        const chips = document.querySelectorAll("#site-chips .chip");
+        const siteInput = document.getElementById("form-site");
+        chips.forEach(chip => {
+            chip.addEventListener("click", () => {
+                chips.forEach(c => c.classList.remove("active"));
+                chip.classList.add("active");
+                siteInput.value = chip.getAttribute("data-value");
+            });
+        });
+
+        // Interactivity: Type selection
+        const typeCards = document.querySelectorAll(".type-card");
+        const typeInput = document.getElementById("form-type");
+        typeCards.forEach(card => {
+            card.addEventListener("click", () => {
+                typeCards.forEach(c => c.classList.remove("active"));
+                card.classList.add("active");
+                typeInput.value = card.getAttribute("data-type");
+            });
+        });
+
+        // Multiple Photo Upload Zone with Auto-Resize
+        const uploadZone = document.getElementById("upload-zone");
+        const fileInput = document.getElementById("file-input");
+        const previewGrid = document.getElementById("preview-grid");
+
+        uploadZone.addEventListener("click", () => fileInput.click());
+
+        fileInput.addEventListener("change", (e) => {
+            const files = Array.from(e.target.files);
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    // Resize image on the fly to 1600x1200 maximum to fit Google Script limits
+                    resizeImage(event.target.result, 1600, 1200, (resizedBase64) => {
+                        uploadedImages.push(resizedBase64);
+                        renderPreviewGrid();
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+            fileInput.value = ""; // Clear input so same file can be selected again
+        });
+
+        // Client-side Image Resizer (HTML Canvas)
+        function resizeImage(base64Str, maxWidth, maxHeight, callback) {
+            const img = new Image();
+            img.src = base64Str;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+                
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Compress image to JPEG quality 80% to dramatically save bandwidth
+                const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+                callback(dataUrl);
+            };
+        }
+
+        // Render preview grid of uploaded photos
+        function renderPreviewGrid() {
+            previewGrid.innerHTML = "";
+            uploadedImages.forEach((imgBase64, idx) => {
+                const div = document.createElement("div");
+                div.className = "preview-item";
+                div.innerHTML = `
+                    <img src="${imgBase64}" alt="Foto">
+                    <button type="button" class="remove-single-btn" onclick="removeImage(${idx})">&times;</button>
+                `;
+                previewGrid.appendChild(div);
+            });
+
+            // Добавляем красивую карточку "+" прямо в сетку превью, чтобы было понятно, что можно загружать еще фото
+            if (uploadedImages.length > 0) {
+                const addDiv = document.createElement("div");
+                addDiv.className = "preview-item add-more-card";
+                addDiv.style.display = "flex";
+                addDiv.style.alignItems = "center";
+                addDiv.style.justifyContent = "center";
+                addDiv.style.background = "rgba(255,255,255,0.06)";
+                addDiv.style.border = "1.5px dashed var(--primary)";
+                addDiv.style.cursor = "pointer";
+                addDiv.style.borderRadius = "12px";
+                addDiv.innerHTML = `
+                    <span style="font-size: 1.8rem; color: var(--primary); font-weight: 700;">+</span>
+                `;
+                addDiv.addEventListener("click", () => fileInput.click());
+                previewGrid.appendChild(addDiv);
+            }
+        }
+
+        window.removeImage = function(index) {
+            uploadedImages.splice(index, 1);
+            renderPreviewGrid();
+        };
+
+        // Voice Input (Web Speech API)
+        const micBtn = document.getElementById("mic-btn");
+        const textarea = document.getElementById("form-text");
+        const micHint = document.getElementById("mic-hint");
+        let recognition = null;
+        let isRecording = false;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isRecording = true;
+                micBtn.classList.add("recording");
+                micHint.textContent = translations[currentLang].micListening;
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (textarea.value.trim() !== "") {
+                    textarea.value += " " + transcript;
+                } else {
+                    textarea.value = transcript;
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event);
+                stopRecording();
+                if (event.error === 'not-allowed') {
+                    showToast(currentLang === "pl"
+                        ? "Wymagany dostęp do mikrofonu w przeglądarce/Telegramie."
+                        : "Требуется разрешить доступ к микрофону в настройках браузера/Telegram.", true);
+                } else {
+                    showToast(translations[currentLang].micError, true);
+                }
+            };
+
+            recognition.onend = () => stopRecording();
+
+            micBtn.addEventListener("click", () => {
+                if (isRecording) {
+                    stopRecording();
+                } else {
+                    recognition.lang = currentLang === "pl" ? "pl-PL" : "ru-RU";
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.error(e);
+                        showToast(currentLang === "pl"
+                            ? "Nie można uruchomić mikrofonu."
+                            : "Не удалось запустить микрофон.", true);
+                    }
+                }
+            });
+        } else {
+            micBtn.addEventListener("click", () => {
+                showToast(currentLang === "pl"
+                    ? "Głosowy ввод nie jest wspierany. Użyj mikrofonu na klawiaturze."
+                    : "Голосовой ввод в браузере не поддерживается. Используйте микрофон на клавиатуре телефона.", false);
+            });
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            micBtn.classList.remove("recording");
+            micHint.textContent = translations[currentLang].micHint;
+            if (recognition) {
+                try { recognition.stop(); } catch(e) {}
+            }
+        }
+
+        // Form Submit to Google script
+        const form = document.getElementById("report-form");
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const tr = translations[currentLang];
+            
+            showToast(tr.sending, false);
+            
+            const timestamp = new Date().toISOString().replace("T", " ").substring(0, 19);
+            const site = siteInput.value;
+            const type = typeInput.value;
+            const text = textarea.value.trim();
+            
+            // Join all base64 images into a single comma/newline separated string
+            // Google Apps Script will handle it loop-by-loop and upload all files to custom folders
+            const imagePayload = uploadedImages.join("\n");
+            
+            const payload = {
+                timestamp: timestamp,
+                site: site,
+                type: type,
+                text: text,
+                image: imagePayload
+            };
+            
+            fetch(GOOGLE_WEBAPP_URL, {
+                method: "POST",
+                mode: "no-cors", 
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                showToast(tr.sentSuccess, false);
+                form.reset();
+                uploadedImages = [];
+                previewGrid.innerHTML = "";
+                chips.forEach(c => c.classList.remove("active"));
+                chips[0].classList.add("active");
+                siteInput.value = chips[0].getAttribute("data-value");
+                typeCards.forEach(c => c.classList.remove("active"));
+                typeCards[0].classList.add("active");
+                typeInput.value = "отчет";
+            })
+            .catch((err) => {
+                showToast(tr.sentError + err.toString(), true);
+            });
+        });
+
+        // Toast Helper
+        function showToast(message, isError) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            if (isError) {
+                toast.classList.add("error");
+            } else {
+                toast.classList.remove("error");
+            }
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3500);
+        }
+
+        // Set Telegram WebApp settings
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.setHeaderColor("#0b0f19");
+        }
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered successfully.', reg))
+                    .catch(err => console.log('Service Worker registration failed.', err));
+            });
+        }
+    </script>
+</body>
+</html>
