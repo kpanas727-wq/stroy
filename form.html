@@ -721,14 +721,16 @@
             
             showToast(tr.sending, false);
             
-            const timestamp = new Date().toISOString().replace("T", " ").substring(0, 19);
+                        // Получаем смещение часового пояса и формируем локальное время вместо UTC
+            const tzOffset = new Date().getTimezoneOffset() * 60000;
+            const timestamp = new Date(Date.now() - tzOffset).toISOString().replace("T", " ").substring(0, 19);
+            
             const site = siteInput.value;
             const type = typeInput.value;
             const text = textarea.value.trim();
             
-            // Join all base64 images into a single comma/newline separated string
-            // Google Apps Script will handle it loop-by-loop and upload all files to custom folders
-            const imagePayload = uploadedImages.join("\n");
+            // Объединяем все base64-изображения через надежный разделитель '|||'
+            const imagePayload = uploadedImages.join("|||");
             
             const payload = {
                 timestamp: timestamp,
